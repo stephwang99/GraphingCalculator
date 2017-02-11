@@ -1,0 +1,256 @@
+import java.util.*;
+import javax.swing.*;
+import java.util.regex.Pattern;
+
+
+public class Operation {
+	String equation;
+	int y=0;
+	
+	public Operation(String e){
+		this.equation = e;
+	}
+	
+	public Operation(){
+		this.equation = "y=x";
+	}
+	
+	public String toString(){
+		return ("y: " + this.y);
+	}
+	
+	public String shorten(){
+		String temp = "";
+		for(int j = this.equation.indexOf('=')+1; j < this.equation.length(); j ++){
+			temp += this.equation.charAt(j);
+		}
+				
+		return temp;
+	}
+	
+	
+	public int calculate(int x){
+		this.y = 0;
+		String function = shorten();
+		//System.out.println(function);
+		String temp = "";
+		for(int i = 0; i < function.length(); i++){
+			if(function.charAt(i)=='('){
+				
+				int a = i+1;
+				
+				while(function.charAt(a)!=')'){
+					temp += function.charAt(a);
+					a++;
+					
+					
+				}
+				function = function.replaceFirst(Pattern.quote(temp), Integer.toString(doBracket(temp,x)));
+				temp = "";
+			}
+		
+		}
+		this.y = doBedmas(function);
+		return this.y;
+	}
+	
+	public String removeBracket(String s){
+		for(int i = 0; i < s.length(); i++){
+			if(s.charAt(i)==')'){
+				s = s.replaceAll("\\)", "");
+			}
+			if(s.charAt(i)=='('){
+				if(checkChar(s.charAt(i+1)) || checkChar(s.charAt(i-1))){
+					s = s.replaceFirst("\\(", "");
+				}
+				else{
+					s = s.replaceFirst("\\(", "*");
+				}
+				//System.out.println(s);
+			}
+		}
+		return s;
+	}
+	
+	public int doBedmas(String s){
+		String first = "";
+		String second = "";
+		String doing = "";
+		char operator = ' ';
+		int finale = 0;
+		int result = 0;
+		s = removeBracket(s);
+		//System.out.println(s);
+		for(int i = 0; i < s.length(); i++){
+			if(i==s.length()-1){
+				first += s.charAt(i);
+				doing += s.charAt(i);
+			//	System.out.println(first);
+			//	System.out.println(second);
+				result = bedmas(operator, Integer.parseInt(second), first);
+				s = s.replaceFirst(Pattern.quote(doing), Integer.toString(result));
+				//System.out.println (s);
+				finale = Integer.parseInt(s);
+				return finale;
+			}
+			
+			if(Character.isDigit(s.charAt(i))){
+				doing += s.charAt(i);
+				first+=s.charAt(i);
+				if(isInteger(s)){
+					finale = Integer.parseInt(s);
+					i= s.length()+10;
+				}
+			}
+			else if(checkChar(s.charAt(i))){
+				if(!(second.equals(""))){
+					//System.out.println ("hi.");
+					result = bedmas(operator, Integer.parseInt(second), first);
+					s = s.replaceFirst(Pattern.quote(doing), Integer.toString(result));
+					//System.out.println (s);
+					second = "";
+					first = "";
+					doing = "";
+					i = -1;	
+				}
+				else if(s.charAt(i)== '*' || s.charAt(i)=='/'){
+					operator = s.charAt(i);
+					doing += s.charAt(i);
+					second = first;
+					first = "";
+				}
+				else{
+					if(checkOperator(s)){
+						first = "";
+						doing = "";
+						
+					}
+					else{
+						operator = s.charAt(i);
+						doing += s.charAt(i);
+						second = first;
+						first = "";
+					}
+					
+				}
+					
+			}
+			else{
+				System.out.println ("what?");
+			}
+		
+		}
+		//System.out.println(s);
+		return finale;
+	}
+	
+	
+	public boolean checkOperator (String s){
+		for (int i =0; i < s.length(); i ++){
+			if(s.charAt(i)== '*' || s.charAt(i)== '/'){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isInteger(String s){
+    	for(int i = 0; i < s.length(); i++) {
+     		if(!Character.isDigit(s.charAt(i))){
+     			return false;
+     		}
+    	}   
+   	 	return true;
+	}
+	
+	public int doBracket(String s, int value){
+		String first = "";
+		String second = "";
+		char operand = ' ';
+		int total;
+		
+		for(int i = 0; i < s.length();i++){
+			if(Character.isDigit(s.charAt(i))){
+				first+=s.charAt(i);
+			}
+			else if(s.charAt(i)=='x'){
+					second = Integer.toString(Integer.parseInt(first)*value);
+					//System.out.println(second);
+			}
+			else if(checkChar(s.charAt(i))){
+				operand = s.charAt(i);
+				if(second.equals("")){
+					second = first;
+					first = "";
+				}
+				
+			}
+		}
+		
+		total = Integer.parseInt(second);
+		if(operand == '+'){
+			total+= Integer.parseInt(first);
+		}
+		else if(operand == '-'){
+			total-= Integer.parseInt(first);
+		}
+		else if(operand == '*'){
+			total*= Integer.parseInt(first);
+		}
+		else if(operand == '/'){
+			total /= Integer.parseInt(first);
+		}
+	
+		else{
+			return total;
+			
+		}
+		
+		return total;
+		
+	}
+	
+	
+	public int bedmas(char operand, int a, String b){
+		if(operand == '+'){
+			a+= Integer.parseInt(b);
+		}
+		else if(operand == '-'){
+			a-= Integer.parseInt(b);
+		}
+		else if(operand == '*'){
+			a*= Integer.parseInt(b);
+		}
+		else if(operand == '/'){
+			a /= Integer.parseInt(b);
+		}
+		else if(operand == '('){
+			a *= Integer.parseInt(b);
+		}
+		else{
+			return a;
+			
+		}
+		return a;
+	}
+	
+	public boolean checkChar(char c){
+		if(c=='+' || c=='-' || c=='*' || c=='/' || c=='('){
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	
+//	public static void main (String args []){
+//		Operation tryout = new Operation("y=2(2x)+5");
+//		System.out.println(tryout.calculate(1000));
+//		System.out.println(tryout.calculate(-2));
+//		System.out.println(tryout.calculate(3));
+//	//	System.out.println("hi");
+//	}
+//	//flaws on no more than one operator in brackets, no exponents yet
+
+}
+
